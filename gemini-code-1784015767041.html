@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大学生が作成した阿賀野ナビ</title>
+    <style>
+        /* 白鳥をイメージした白と青のテーマ */
+        :root {
+            --primary-blue: #005a9c;
+            --sky-blue: #00a8ff;
+            --light-blue: #e6f2ff;
+            --pure-white: #ffffff;
+            --accent-orange: #ff9800; /* クーポンなどのアクセントカラー */
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-blue);
+            color: #333;
+        }
+        h1, h2, h3, p { margin: 0; }
+        
+        /* ヘッダー */
+        header {
+            background-color: var(--pure-white);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-bottom: 3px solid var(--primary-blue);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        header h1 {
+            color: var(--primary-blue);
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+        }
+
+        .page { display: none; padding: 0 0 30px 0; }
+        .page.active { display: block; }
+
+        /* --- 1. トップページ --- */
+        .slider-container {
+            width: 100%;
+            height: 450px;
+            overflow: hidden;
+            position: relative;
+            background-color: #eaeff2;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .slide {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .slide.active { opacity: 1; }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            padding: 0 15px;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 18px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--pure-white);
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .nav-btn:active { 
+            transform: translateY(2px); 
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        .btn-kanko { background-color: var(--primary-blue); }
+        .btn-taiken { background-color: var(--sky-blue); }
+        .btn-gourmet { background-color: #5bc0de; } 
+
+        /* 横スクロールお知らせ（ニュースティッカー） */
+        .news-ticker {
+            background-color: var(--accent-orange);
+            color: var(--pure-white);
+            padding: 12px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            margin: 20px 15px 0 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .news-ticker p {
+            display: inline-block;
+            margin: 0;
+            padding-left: 100%;
+            animation: ticker 12s linear infinite;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* --- 2. カテゴリページ --- */
+        .page-content { padding: 20px; }
+        
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: var(--pure-white);
+            color: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .card {
+            background: var(--pure-white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+            transition: transform 0.2s;
+        }
+        .card:active { transform: scale(0.98); }
+        
+        .card-icon {
+            width: 100%;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+        .card-title {
+            padding: 12px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            text-align: center;
+            color: var(--primary-blue);
+            line-height: 1.3;
+        }
+
+        /* --- 3. スポット詳細画面 --- */
+        .detail-info {
+            background: var(--pure-white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-top: 10px;
+        }
+        
+        /* クーポンエリア */
+        .coupon-box {
+            background-color: #fff8e1;
+            border: 2px dashed var(--accent-orange);
+            border-radius: 8px;
+            padding: 20px 15px;
+            text-align: center;
+            margin: 20px 0;
+            display: none; 
+        }
+        .coupon-btn {
+            background-color: #e53935; /* 赤 */
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 3px 5px rgba(229,57,53,0.3);
+            transition: all 0.3s;
+        }
+        .coupon-btn.revealed {
+            background-color: #ffb300; /* 黄色・オレンジ系 */
+            box-shadow: none;
+            transform: scale(1.05);
+            color: #333;
+        }
+
+        .info-list {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8fcfd;
+            border: 1px solid #cce5ff;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #444;
+        }
+        .info-list p { margin: 5px 0; }
+        
+        .map-btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background-color: var(--primary-blue);
+            color: var(--pure-white);
+            text-align: center;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 30px;
+            margin: 20px 0 0 0;
+            box-shadow: 0 4px 6px rgba(0, 90, 156, 0.3);
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>大学生が作成した阿賀野ナビ</h1>
+    </header>
+
+    <!-- トップページ -->
+    <div id="top-page" class="page active">
+        <div class="slider-container">
+            <img src="スクリーンショット 2026-07-14 15.34.24.jpg" class="slide active" alt="阿賀野市">
+            <img src="スクリーンショット 2026-07-14 15.33.39.jpg" class="slide" alt="阿賀野市">
+            <img src="スクリーンショット 2026-07-14 15.35.27.jpg" class="slide" alt="阿賀野市">
+            <img src="スクリーンショット 2026-07-14 15.34.44.jpg" class="slide" alt="阿賀野市">
+            <img src="スクリーンショット 2026-07-14 15.35.11.jpg" class="slide" alt="阿賀野市">
+        </div>
+
+        <div class="nav-buttons">
+            <button class="nav-btn btn-kanko" onclick="loadCategory('kanko', '観光')">【観光】</button>
+            <button class="nav-btn btn-taiken" onclick="loadCategory('taiken', '体験')">【体験】</button>
+            <button class="nav-btn btn-gourmet" onclick="loadCategory('gourmet', 'グルメ')">【グルメ】</button>
+        </div>
+
+        <!-- 横スクロールお知らせ -->
+        <div class="news-ticker">
+            <p>🎉 今ならグルメコーナーの「瓦テラス」100円引きクーポンついてます！</p>
+        </div>
+    </div>
+
+    <!-- カテゴリページ -->
+    <div id="category-page" class="page">
+        <div class="page-content">
+            <div class="back-btn" onclick="showPage('top-page')">← トップに戻る</div>
+            <h2 id="category-title" style="margin-bottom: 15px; color: #005a9c;">カテゴリー</h2>
+            
+            <div id="card-grid" class="card-grid"></div>
+        </div>
+    </div>
+
+    <!-- スポット詳細画面 -->
+    <div id="detail-page" class="page">
+        <div class="page-content">
+            <div class="back-btn" onclick="showPage('category-page')">← 一覧に戻る</div>
+            
+            <div class="detail-info">
+                <h2 id="detail-title" style="color: #005a9c; margin-bottom: 10px;">スポット名</h2>
+                <p id="detail-desc" style="line-height: 1.6; font-size: 0.95rem;">紹介文</p>
+                
+                <!-- クーポンエリア -->
+                <div id="detail-coupon" class="coupon-box">
+                    <p style="font-size: 1rem; color: #d32f2f; margin-bottom: 12px; font-weight: bold;">📱 店員さんに見せてね！</p>
+                    <button id="coupon-btn" class="coupon-btn" onclick="revealCoupon()">🎁 クーポンを表示</button>
+                    <p style="font-size: 0.85rem; color: #555; margin-top: 10px; font-weight: bold;">※お一人様一回まで</p>
+                </div>
+                
+                <div class="info-list">
+                    <p><strong>🕒 営業時間：</strong> <span id="detail-hours"></span></p>
+                    <p><strong>💤 定休日：</strong> <span id="detail-closed"></span></p>
+                    <p><strong>📍 住所：</strong> <span id="detail-address"></span></p>
+                </div>
+                
+                <a id="map-link" href="#" target="_blank" rel="noopener noreferrer" class="map-btn">
+                    📍 マップでルートを見る
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- データ一覧 ---
+        const spotsData = {
+            kanko: [
+                { title: "瓢湖", address: "新潟県阿賀野市水原313-1", hours: "終日開放", closed: "なし", desc: "毎年10月頃から3月頃まで約5,000羽以上の白鳥が飛来する全国的にも有名な湖です。四季折々の自然を楽しめる散策スポットとして人気があります。", icon: "🦢", color: "#e3f2fd" },
+                { title: "五頭山", address: "新潟県阿賀野市 五頭山", hours: "終日開放（登山自由）", closed: "なし", desc: "標高912mの阿賀野市を代表する山で、初心者から上級者まで楽しめる登山コースがあります。山頂からは越後平野を一望できます。", icon: "⛰️", color: "#e8f5e9" },
+                { title: "村杉温泉", address: "新潟県阿賀野市村杉", hours: "施設・宿により異なる", closed: "施設・宿により異なる", desc: "約700年の歴史を持つ五頭温泉郷の一つで、全国でも珍しいラジウム温泉として知られています。静かな温泉街でゆったり過ごせます。", icon: "♨️", color: "#fce4ec" },
+                { title: "出湯温泉", address: "新潟県阿賀野市出湯", hours: "施設・宿により異なる", closed: "施設・宿により異なる", desc: "開湯1200年以上の歴史を誇る温泉地です。昔ながらの落ち着いた街並みと共同浴場が魅力です。", icon: "♨️", color: "#fce4ec" },
+                { title: "今板温泉", address: "新潟県阿賀野市今板", hours: "施設・宿により異なる", closed: "施設・宿により異なる", desc: "自然豊かな山あいにある温泉地です。四季折々の景色を楽しみながら、静かな時間を過ごせます。", icon: "♨️", color: "#fce4ec" },
+                { title: "サントピアワールド", address: "新潟県阿賀野市久保1-1", hours: "10:00～16:00（※時期により変動）", closed: "不定休・冬季休業あり", desc: "新潟県内唯一の本格遊園地です。ジェットコースターや観覧車など家族みんなで楽しめるアトラクションが充実しています。", icon: "🎡", color: "#fff3e0" },
+                { title: "旦飯野神社", address: "新潟県阿賀野市宮下968", hours: "終日開放（受付 8:00～18:00）", closed: "なし", desc: "阿賀野市を代表する歴史ある神社です。縁結びや開運のご利益があるとされ、多くの参拝客が訪れます。", icon: "⛩️", color: "#f3e5f5" },
+                { title: "安田瓦ロード", address: "新潟県阿賀野市保田7373-1", hours: "施設により異なる", closed: "施設により異なる", desc: "約300年の歴史を持つ伝統工芸「安田瓦」の魅力を感じられる散策スポットです。瓦アートやモニュメントも楽しめます。", icon: "🛖", color: "#efebe9" },
+                { title: "水原代官所", address: "新潟県阿賀野市外城町10-5", hours: "9:30～16:00（12～3月は10:00～）", closed: "月曜休（祝日の場合は翌日）・年末年始", desc: "江戸時代に越後を治めた代官所を復元した歴史施設です。当時の役所の様子や地域の歴史を学べます。", icon: "🏯", color: "#e0f7fa" },
+                { title: "あがの池公園", address: "新潟県阿賀野市かがやき", hours: "終日開放", closed: "なし", desc: "広々とした芝生や遊具があり、子どもから大人まで楽しめる公園です。散歩やピクニックにもおすすめです。", icon: "🛝", color: "#f1f8e9" }
+            ],
+            taiken: [
+                { title: "丸三安田瓦工業", address: "新潟県阿賀野市保田7373-1", hours: "9:00～17:00", closed: "第2・第4日曜、祝日など", desc: "伝統工芸「安田瓦」の製造工程を見学したり、瓦づくり体験ができる施設です。", icon: "🏺", color: "#efebe9" },
+                { title: "ヤスダヨーグルト Y&Y GARDEN", address: "新潟県阿賀野市保田940", hours: "9:00～17:00", closed: "なし（年末年始休業あり）", desc: "ヤスダヨーグルトの直営施設で、工場見学や限定スイーツ、ショッピングが楽しめます。", icon: "🐄", color: "#fff8e1" },
+                { title: "サントピアワールド", address: "新潟県阿賀野市久保1-1", hours: "10:00～16:00（※時期により変動）", closed: "不定休・冬季休業あり", desc: "アトラクションやイベントが充実しており、一日中遊べるテーマパークです。", icon: "🎢", color: "#fff3e0" },
+                { title: "五頭自然学校", address: "新潟県阿賀野市村杉3946-163", hours: "9:00～17:00", closed: "不定休", desc: "自然体験やキャンプ、川遊びなどを通して阿賀野市の豊かな自然を満喫できます。", icon: "🏕️", color: "#e8f5e9" },
+                { title: "五頭山", address: "新潟県阿賀野市 五頭山", hours: "終日開放", closed: "なし", desc: "登山や森林浴を楽しめる人気スポットです。初心者向けコースも整備されています。", icon: "🥾", color: "#f1f8e9" },
+                { title: "瓢湖", address: "新潟県阿賀野市水原313-1", hours: "終日開放", closed: "なし", desc: "白鳥やカモなどの野鳥観察が楽しめる自然体験スポットです。", icon: "🦆", color: "#e3f2fd" },
+                { title: "村杉温泉", address: "新潟県阿賀野市村杉", hours: "施設により異なる", closed: "施設により異なる", desc: "日帰り入浴や温泉街散策を気軽に楽しめます。", icon: "♨️", color: "#fce4ec" },
+                { title: "出湯温泉", address: "新潟県阿賀野市出湯", hours: "施設により異なる", closed: "施設により異なる", desc: "共同浴場巡りや昔ながらの温泉街散策が人気です。", icon: "♨️", color: "#fce4ec" },
+                { title: "今板温泉", address: "新潟県阿賀野市今板", hours: "施設により異なる", closed: "施設により異なる", desc: "温泉と自然散策を一緒に楽しめる癒やしのスポットです。", icon: "♨️", color: "#fce4ec" },
+                { title: "五頭山麓うららの森", address: "新潟県阿賀野市村杉3946-163", hours: "9:00～17:00", closed: "火曜（祝日の場合は翌日）", desc: "地元農産物の買い物や体験イベントが楽しめる観光交流施設です。", icon: "🧺", color: "#f9fbe7" }
+            ],
+            gourmet: [
+                { title: "ヤスダヨーグルト Y&Y GARDEN", address: "新潟県阿賀野市保田940", hours: "9:00～17:00", closed: "なし（年末年始休業あり）", desc: "濃厚な飲むヨーグルトやソフトクリーム、ワッフルなどの人気スイーツが味わえます。", icon: "🍦", color: "#fff8e1" },
+                { title: "瓦テラス", address: "新潟県阿賀野市保田7373-1", hours: "10:00～17:00", closed: "水曜日", desc: "地元食材を活かしたランチやスイーツが楽しめる人気カフェです。", icon: "🍰", color: "#efebe9", hasCoupon: true },
+                { title: "かわじ", address: "新潟県阿賀野市保田7373-1", hours: "10:00～16:30", closed: "水曜日", desc: "阿賀野市の旬の食材を使った和食が楽しめる人気店です。", icon: "🍱", color: "#e8eaf6" },
+                { title: "スワンレイクビール レストラン", address: "新潟県阿賀野市金屋345-1", hours: "11:00～21:00", closed: "火曜日・第1第3月曜", desc: "世界的な賞を受賞したクラフトビールと本格的な洋食が楽しめます。", icon: "🍺", color: "#fff3e0" },
+                { title: "レストランスワン", address: "新潟県阿賀野市金屋345-1", hours: "11:00～21:00", closed: "火曜日", desc: "洋食を中心に、家族連れにも人気のレストランです。", icon: "🍽️", color: "#ffebee" },
+                { title: "うららの森 農産物直売所", address: "新潟県阿賀野市村杉3946-163", hours: "9:00～17:00", closed: "火曜日", desc: "新鮮な野菜や地元のお惣菜、お弁当などを購入できます。", icon: "🍅", color: "#f1f8e9" },
+                { title: "道の駅あがの", address: "新潟県阿賀野市窪川原553-2", hours: "9:00～18:00", closed: "なし", desc: "阿賀野市の名物グルメやお土産が豊富にそろう人気スポットです。", icon: "🛍️", color: "#e3f2fd" },
+                { title: "手打ちそば鬼七", address: "新潟県五泉市赤海1-4-27", hours: "11:30～14:30 / 18:00～21:00", closed: "月曜日・第4火曜日", desc: "香り豊かな手打ちそばを味わえる人気店です。", icon: "🍜", color: "#f5f5f5" },
+                { title: "寿し処にわやま", address: "新潟県阿賀野市岡山町6-2", hours: "11:30～14:00 / 17:00～21:30頃", closed: "木曜日", desc: "地元の新鮮な魚介を使った寿司や海鮮料理が楽しめます。", icon: "🍣", color: "#e0f2f1" },
+                { title: "パン工房ふぇるまーた", address: "新潟県阿賀野市（詳細要問合せ）", hours: "店舗へお問い合わせください", closed: "店舗へお問い合わせください", desc: "焼きたてのパンや季節限定の商品が人気のベーカリーです。", icon: "🥖", color: "#fffde7" }
+            ]
+        };
+
+        // --- 画像スライダーの処理 ---
+        const slides = document.querySelectorAll('.slide');
+        let currentSlide = 0;
+        setInterval(() => {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }, 2500);
+
+        // --- 画面切り替えの処理 ---
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0, 0); 
+        }
+
+        // --- カテゴリボタンを押した時の処理 ---
+        function loadCategory(categoryKey, categoryName) {
+            document.getElementById('category-title').innerText = `【${categoryName}】10選`;
+            const grid = document.getElementById('card-grid');
+            grid.innerHTML = ''; 
+
+            spotsData[categoryKey].forEach(spot => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => showDetail(spot);
+                
+                card.innerHTML = `
+                    <div class="card-icon" style="background-color: ${spot.color};">${spot.icon}</div>
+                    <div class="card-title">${spot.title}</div>
+                `;
+                grid.appendChild(card);
+            });
+
+            showPage('category-page');
+        }
+
+        // --- 詳細画面の表示 ---
+        function showDetail(spot) {
+            showPage('detail-page');
+            
+            document.getElementById('detail-title').innerText = spot.title;
+            document.getElementById('detail-hours').innerText = spot.hours;
+            document.getElementById('detail-closed').innerText = spot.closed;
+            document.getElementById('detail-address').innerText = spot.address;
+            document.getElementById('detail-desc').innerText = spot.desc;
+            
+            // クーポンの制御
+            const couponBox = document.getElementById('detail-coupon');
+            const couponBtn = document.getElementById('coupon-btn');
+            
+            if (spot.hasCoupon) {
+                couponBox.style.display = 'block';
+                couponBtn.innerText = '🎁 クーポンを表示';
+                couponBtn.classList.remove('revealed');
+                couponBtn.disabled = false; 
+            } else {
+                couponBox.style.display = 'none';
+            }
+            
+            const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(spot.address)}`;
+            document.getElementById('map-link').href = mapUrl;
+        }
+
+        // --- クーポンボタンを押した時の処理 ---
+        function revealCoupon() {
+            const btn = document.getElementById('coupon-btn');
+            btn.innerText = '✨ 100円引き！ ✨';
+            btn.classList.add('revealed');
+            btn.disabled = true; 
+        }
+    </script>
+</body>
+</html>
